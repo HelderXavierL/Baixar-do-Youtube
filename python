@@ -1,0 +1,24 @@
+import os
+from yt_dlp import YoutubeDL
+
+def download_playlist_videos(playlist_url, output_folder):
+    # Configuração para baixar o vídeo ou áudio sem conversão
+    ydl_opts = {
+        'format': 'bestaudio/best',  # ou 'best' para baixar com o vídeo junto
+        'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s')
+    }
+
+    # Criar a pasta de saída, se não existir
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    with YoutubeDL(ydl_opts) as ydl:
+        print("Baixando a playlist...")
+        ydl.download([playlist_url])
+
+    print("Download concluído!")
+
+# Exemplo de uso
+playlist_url = "URL"  # Substitua pela URL da sua playlist
+output_folder = "Pasta de despejo"  # Pasta onde os arquivos serão salvos
+download_playlist_videos(playlist_url, output_folder)
