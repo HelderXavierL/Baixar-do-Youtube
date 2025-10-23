@@ -1,52 +1,37 @@
+import yt_dlp
 import os
-from yt_dlp import YoutubeDL
-from pydub import AudioSegment
 
-# Função para converter arquivos MP4 para MP3
-def convert_mp4_to_mp3(output_folder):
-    for file in os.listdir(output_folder):
-        if file.endswith(".mp4"):
-            mp4_path = os.path.join(output_folder, file)
-            mp3_path = os.path.splitext(mp4_path)[0] + ".mp3"
-            
-            # Converter usando pydub
-            audio = AudioSegment.from_file(mp4_path, format="mp4")
-            audio.export(mp3_path, format="mp3")
+output_folder = "Pasta de despejo"
+os.makedirs(output_folder, exist_ok=True)
 
-            print(f"Convertido: {file} -> {os.path.basename(mp3_path)}")
+url = input("Cole o link do vídeo ou playlist: ").strip()
 
-            # Opcional: Remover o arquivo original MP4 após a conversão
-            os.remove(mp4_path)
+while True:
+    escolha = input("Deseja baixar como MP4 (vídeo) ou MP3 (áudio)? Digite MP4 ou MP3: ").strip().upper()
+    if escolha in ["MP4", "MP3"]:
+        break
+    print("Opção inválida! Digite apenas MP4 ou MP3.")
 
-# Função para baixar vídeos ou áudios da playlist
-def download_playlist_videos(playlist_url, output_folder):
-    # Configuração para baixar o áudio em qualidade máxima
+if escolha == "MP4":
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',  # força formatos compatíveis
+        'outtmpl': f'{output_folder}/%(title)s.%(ext)s',
+        'merge_output_format': 'mp4',  # mescla vídeo + áudio em mp4
+    }
+else:  # MP3
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
+        'outtmpl': f'{output_folder}/%(title)s.%(ext)s',
         'postprocessors': [
             {
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }
-        ]
+        ],
     }
 
-    # Criar a pasta de saída, se não existir
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    ydl.download([url])
 
-    with YoutubeDL(ydl_opts) as ydl:
-        print("Baixando a playlist...")
-        ydl.download([playlist_url])
-
-    print("Download concluído!")
-
-    # Converter arquivos MP4 restantes para MP3 (se necessário)
-    convert_mp4_to_mp3(output_folder)
-
-# Exemplo de uso
-playlist_url = "https://www.youtube.com/watch?v=kNJPalON82E&list=PLjwDi_dm6srlAU54JHsDwaMWb9jmTvysq&ab_channel=TodahMusic"  # Substitua pela URL da sua playlist
-output_folder = "Pasta de despejo"  # Pasta onde os arquivos serão salvos
-download_playlist_videos(playlist_url, output_folder)
+print("Download concluído!")
